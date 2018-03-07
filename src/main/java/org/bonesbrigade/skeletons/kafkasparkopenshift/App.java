@@ -34,7 +34,7 @@ public class App {
         Set<String> topicSet = new HashSet<String>();
         topicSet.add(topic);
         Map<String, Object> kafkaParams = new HashMap<String, Object>();
-        kafkaParams.put("metadata.brokers.list", brokers);
+        kafkaParams.put("bootstrap.servers", brokers);
 
         JavaInputDStream<ConsumerRecord<Object, Object>> messages = KafkaUtils.createDirectStream(
             jssc,
