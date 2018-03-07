@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.streaming.api.java.*;
@@ -35,6 +36,9 @@ public class App {
         topicSet.add(topic);
         Map<String, Object> kafkaParams = new HashMap<String, Object>();
         kafkaParams.put("bootstrap.servers", brokers);
+        kafkaParams.put("value.deserializer", StringDeserializer.class);
+        kafkaParams.put("key.deserializer", StringDeserializer.class);
+        kafkaParams.put("group.id", "stream1");
 
         JavaInputDStream<ConsumerRecord<Object, Object>> messages = KafkaUtils.createDirectStream(
             jssc,
