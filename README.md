@@ -40,12 +40,6 @@ Spark clusters that are created by the
 utilities. Please see that documentation for more information about this
 process.
 
-This application also requires the deployment of a Kafka broker and something
-to emit messages to that broker. These topics are out of scope for this
-tutorial, but please see
-[the Strimzi project](http://strimzi.io/) for instructions on deploying
-Apache Kafka on OpenShift.
-
 1. see the [radanalytics.io Get Started page](https://radanalytics.io/get-started)
    for instructions on installing that tooling
 
