@@ -1,26 +1,66 @@
 # kafka-spark-openshift-java
 
-This project provides a simple Java application skeleton for including Apache
-Kafka and Apache Spark with the [radanalytics.io](radanalytics.io) project. It
-is designed to be deployed using a
-[source-to-image](https://github.com/openshift/source-to-image) workflow onto
-OpenShift.
+A Java source-to-image application skeleton for using Apache Spark and
+Kafka on OpenShift.
 
-Deploying OpenShift and Kafka are outside the scope of this readme, but for
-a quick step up see the following:
+This application will simply read messages from a Kafka topic, and
+the write those messages back out to a second topic. It will achieve this
+using Spark's streaming utilities for Kafka.
 
-* OpenShift https://docs.openshift.org/latest/getting_started/administrators.html
-* Kafka http://strimzi.io/docs/0.1.0/
-* radanalytics.io https://radanalytics.io/get-started
+## Prerequisites
 
-## Launching on OpenShift
+* OpenShift - this application is designed for use on OpenShift, you can find
+  great documentation and starter guides
+  [on their website](https://docs.openshift.org/latest/getting_started/index.html).
 
-```
-oc new-app --template oshinko-java-spark-build-dc \
-  -p APPLICATION_NAME=skeleton \
-  -p GIT_URI=https://github.com/bones-brigade/kafka-spark-openshift-java \
-  -p APP_MAIN_CLASS=org.bonesbrigade.skeletons.kafkasparkopenshift.App \
-  -p SPARK_OPTIONS='--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.2.0 --conf spark.jars.ivy=/tmp/.ivy2' \
-  -e KAFKA_BROKERS=kafka:9092 \
-  -e KAFKA_TOPIC=sometopic
-```
+* Apache Kafka - because this application requires a Kafka broker to read from
+  and write to, you will need to a broker deployed and a source of
+  information. The Strimzi project provides some great
+  [documentation and manifests](http://strimzi.io/) for running Kafka on
+  OpenShift.
+
+### Helpful tools
+
+To help accelerate work with Kafka, here are a few applications to help:
+
+* [Emitter](https://github.com/bones-brigade/kafka-openshift-python-emitter) -
+  this is a skeleton to publish text information on a Kafka topic.
+
+* [Listener](https://github.com/bones-brigade/kafka-openshift-python-listener) -
+  this is a skeleton to log all messages from a Kafka topic.
+
+## Quickstart
+
+As this project utilizes Spark, it will be easiest to consume on OpenShift by
+using the [RADanalytics](https://radanalytics.io) tooling. The source-to-image
+nature of this application will require that a Spark cluster is available. The
+shortest path to making that connection is to use the automatically spawned
+Spark clusters that are created by the
+[Oshinko project source-to-image](https://github.com/radanalyticsio/oshinko-s2i)
+utilities. Please see that documentation for more information about this
+process.
+
+This application also requires the deployment of a Kafka broker and something
+to emit messages to that broker. These topics are out of scope for this
+tutorial, but please see
+[the Strimzi project](http://strimzi.io/) for instructions on deploying
+Apache Kafka on OpenShift.
+
+1. see the [radanalytics.io Get Started page](https://radanalytics.io/get-started)
+   for instructions on installing that tooling
+
+1. launch the skeleton with the following command:
+   ```bash
+   oc new-app --template oshinko-java-spark-build-dc \
+       -p APPLICATION_NAME=skeleton \
+       -p GIT_URI=https://github.com/bones-brigade/kafka-spark-openshift-java \
+       -p APP_MAIN_CLASS=org.bonesbrigade.skeletons.kafkasparkopenshift.App \
+       -p SPARK_OPTIONS='--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.3.0 --conf spark.jars.ivy=/tmp/.ivy2' \
+       -e KAFKA_BROKERS=apache-kafka:9092 \
+       -e KAFKA_IN_TOPIC=topic1 \
+       -e KAFKA_OUT_TOPIC=topic2
+   ```
+
+In this example, our application will subscribe to messages on the Kafka topic
+`topic1`, and it will publish messages on the topic `topic2` using the broker
+at `apache-kafka:9092`.
