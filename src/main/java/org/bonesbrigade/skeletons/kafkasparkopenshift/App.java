@@ -1,3 +1,13 @@
+/* kafka-spark-openshift-java
+
+This is a skeleton application for processing stream data from Apache
+Kafka with Apache Spark. It will read messages on an input topic and
+simply echo those message to the output topic.
+
+This application uses Spark's _Structured Streaming_ interface, for
+more information please see
+https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html
+*/
 package org.bonesbrigade.skeletons.kafkasparkopenshift;
 
 import java.util.HashMap;
@@ -6,19 +16,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.spark.sql.*;
+import org.apache.spark.sql.streaming.StreamingQuery;
+import org.apache.spark.sql.types.DataTypes;
 
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.function.VoidFunction;
-import org.apache.spark.streaming.api.java.*;
-import org.apache.spark.streaming.Durations;
-import org.apache.spark.streaming.kafka010.ConsumerStrategies;
-import org.apache.spark.streaming.kafka010.KafkaUtils;
-import org.apache.spark.streaming.kafka010.LocationStrategies;
 
 public class App {
     public static void main(String[] args) throws Exception {
@@ -40,37 +41,43 @@ public class App {
             System.exit(1);
         }
 
-        SparkConf conf = new SparkConf().setAppName("KafkaSparkOpenShiftApp");
-        JavaStreamingContext jssc = new JavaStreamingContext(conf, Durations.seconds(3));
+        /* acquire a SparkSession object */
+        SparkSession spark = SparkSession
+            .builder()
+            .appName("KafkaSparkOpenShiftJava")
+            .getOrCreate();
 
-        Set<String> topicSet = new HashSet<String>();
-        topicSet.add(intopic);
-        Map<String, Object> kafkaParams = new HashMap<String, Object>();
-        kafkaParams.put("bootstrap.servers", brokers);
-        kafkaParams.put("value.deserializer", StringDeserializer.class);
-        kafkaParams.put("key.deserializer", StringDeserializer.class);
-        kafkaParams.put("group.id", "stream1");
+        /* configure the operations to read the input topic */
+        Dataset<Row> records = spark
+            .readStream()
+            .format("kafka")
+            .option("kafka.bootstrap.servers", brokers)
+            .option("subscribe", intopic)
+            .load()
+            .select(functions.column("value").cast(DataTypes.StringType).alias("value"));
+            /*
+            * add your data operations here, the raw message is passed along as
+            * the alias `value`.
+            *
+            * for example, to process the message as json and create the
+            * corresponding objects you could do the following:
+            *
+            * .select(functions.from_json(functions.column('value'), msg_struct).alias('json'));
+            *
+            * the following operations would then access the object and its
+            * properties using the name `json`.
+            */
 
-        JavaInputDStream<ConsumerRecord<Object, Object>> messages = KafkaUtils.createDirectStream(
-            jssc,
-            LocationStrategies.PreferConsistent(),
-            ConsumerStrategies.Subscribe(topicSet, kafkaParams));
+        /* configure the output stream */
+        StreamingQuery writer = records
+            .writeStream()
+            .format("kafka")
+            .option("kafka.bootstrap.servers", brokers)
+            .option("topic", outtopic)
+            .option("checkpointLocation", "/tmp")
+            .start();
 
-        JavaDStream<String> lines = messages.map(l -> l.value().toString());
-
-        Properties props = new Properties();
-        props.put("bootstrap.servers", brokers);
-        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        lines.foreachRDD(r -> r.foreach(new VoidFunction<String>() {
-            public void call(String s) {
-                Producer<String, String> producer = new KafkaProducer<>(props);
-                producer.send(new ProducerRecord<String, String>(outtopic, s));
-            }
-        }));
-
-        jssc.start();
-        System.out.println("waiting for input");
-        jssc.awaitTermination();
+        /* begin processing the input and output topics */
+        writer.awaitTermination();
     }
 }
