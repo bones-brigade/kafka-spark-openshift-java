@@ -50,11 +50,11 @@ process.
        -p GIT_URI=https://github.com/bones-brigade/kafka-spark-openshift-java \
        -p APP_MAIN_CLASS=org.bonesbrigade.skeletons.kafkasparkopenshift.App \
        -p SPARK_OPTIONS='--packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 --conf spark.jars.ivy=/tmp/.ivy2' \
-       -e KAFKA_BROKERS=apache-kafka:9092 \
+       -e KAFKA_BROKERS=kafka:9092 \
        -e KAFKA_IN_TOPIC=topic1 \
        -e KAFKA_OUT_TOPIC=topic2
    ```
 
 In this example, our application will subscribe to messages on the Kafka topic
 `topic1`, and it will publish messages on the topic `topic2` using the broker
-at `apache-kafka:9092`.
+at `kafka:9092`.
