@@ -1,4 +1,4 @@
-# kafka-spark-openshift-java
+# kafka-spark-java
 
 A Java source-to-image application skeleton for using Apache Spark and
 Kafka on OpenShift.
@@ -23,10 +23,10 @@ using Spark's streaming utilities for Kafka.
 
 To help accelerate work with Kafka, here are a few applications to help:
 
-* [Emitter](https://github.com/bones-brigade/kafka-openshift-python-emitter) -
+* [Emitter](https://gitlab.com/bones-brigade/kafka-python-emitter) -
   this is a skeleton to publish text information on a Kafka topic.
 
-* [Listener](https://github.com/bones-brigade/kafka-openshift-python-listener) -
+* [Listener](https://gitlab.com/bones-brigade/kafka-python-listener) -
   this is a skeleton to log all messages from a Kafka topic.
 
 ## Quickstart
@@ -47,7 +47,7 @@ process.
    ```bash
    oc new-app --template oshinko-java-spark-build-dc \
        -p APPLICATION_NAME=skeleton \
-       -p GIT_URI=https://github.com/bones-brigade/kafka-spark-openshift-java \
+       -p GIT_URI=https://github.com/bones-brigade/kafka-spark-java \
        -p APP_MAIN_CLASS=org.bonesbrigade.skeletons.kafkasparkopenshift.App \
        -p SPARK_OPTIONS='--packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 --conf spark.jars.ivy=/tmp/.ivy2' \
        -e KAFKA_BROKERS=kafka:9092 \

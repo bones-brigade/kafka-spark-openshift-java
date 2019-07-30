@@ -1,4 +1,4 @@
-/* kafka-spark-openshift-java
+/* kafka-spark-java
 
 This is a skeleton application for processing stream data from Apache
 Kafka with Apache Spark. It will read messages on an input topic and
